@@ -48,9 +48,10 @@ export default function RecurringEventController({
         ) : (
           <>
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 recurringEventState !== null && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -73,7 +74,7 @@ export default function RecurringEventController({
                   setRecurringEventState(newVal);
                 }
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 {recurringEventState && (
                   <div data-testid="recurring-event-collapsible" className="text-sm">
                     <div className="flex items-center">
