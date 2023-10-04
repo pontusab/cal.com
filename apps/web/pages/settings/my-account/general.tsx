@@ -233,7 +233,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           setIsAllowDynamicBookingChecked(checked);
           mutation.mutate({ allowDynamicBooking: checked });
         }}
-        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+        switchContainerClassName="mt-6"
       />
 
       <SettingsToggle
@@ -246,7 +246,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           setIsAllowSEOIndexingChecked(checked);
           mutation.mutate({ allowSEOIndexing: checked });
         }}
-        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+        switchContainerClassName="mt-6"
       />
 
       <SettingsToggle
@@ -259,7 +259,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           setIsReceiveMonthlyDigestEmailChecked(checked);
           mutation.mutate({ receiveMonthlyDigestEmail: checked });
         }}
-        switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+        switchContainerClassName="mt-6"
       />
     </div>
   );
