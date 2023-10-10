@@ -1,27 +1,21 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import {
-  Button,
   Label,
   Select,
   SettingsToggle,
@@ -31,11 +25,10 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
+import { Check } from "@calcom/ui/components/icon";
 
-import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
-import LocationSelect from "@components/ui/form/LocationSelect";
+import { AddLocation } from "@components/eventtype/AddLocation";
+import type { LocationOption } from "@components/ui/form/LocationSelect";
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -161,7 +154,7 @@ export const EventSetupTab = (
     } else {
       setSelectedLocation(option);
     }
-    setShowLocationModal(true);
+    // setShowLocationModal(true);
   };
 
   const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
@@ -206,27 +199,6 @@ export const EventSetupTab = (
     setShowLocationModal(false);
   };
 
-  const locationFormSchema = z.object({
-    locationType: z.string(),
-    locationAddress: z.string().optional(),
-    displayLocationPublicly: z.boolean().optional(),
-    locationPhoneNumber: z
-      .string()
-      .refine((val) => isValidPhoneNumber(val))
-      .optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
-  });
-
-  const locationFormMethods = useForm<{
-    locationType: EventLocationType["type"];
-    locationPhoneNumber?: string;
-    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
-    locationLink?: string; // Currently this only accepts links that are HTTPS://
-    displayLocationPublicly?: boolean;
-  }>({
-    resolver: zodResolver(locationFormSchema),
-  });
-
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
     useLockedFieldsManager(
       eventType,
@@ -256,7 +228,7 @@ export const EventSetupTab = (
 
     return (
       <div className="w-full">
-        {validLocations.length === 0 && (
+        {/* {validLocations.length === 0 && (
           <div className="flex">
             <LocationSelect
               placeholder={t("select")}
@@ -283,62 +255,9 @@ export const EventSetupTab = (
               }}
             />
           </div>
-        )}
+        )} */}
         {validLocations.length > 0 && (
           <ul ref={animationRef}>
-            {validLocations.map((location, index) => {
-              const eventLocationType = getEventLocationType(location.type);
-              if (!eventLocationType) {
-                return null;
-              }
-
-              const eventLabel =
-                location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
-              return (
-                <li
-                  key={`${location.type}${index}`}
-                  className="border-default text-default mb-2 h-9 rounded-md border px-2 py-1.5 hover:cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <img
-                        src={eventLocationType.iconUrl}
-                        className={classNames(
-                          "h-4 w-4",
-                          classNames(invertLogoOnDark(eventLocationType.iconUrl))
-                        )}
-                        alt={`${eventLocationType.label} logo`}
-                      />
-                      <span className="ms-1 line-clamp-1 text-sm">{`${eventLabel} ${
-                        location.teamName ? `(${location.teamName})` : ""
-                      }`}</span>
-                    </div>
-                    <div className="flex">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          locationFormMethods.setValue("locationType", location.type);
-                          locationFormMethods.unregister("locationLink");
-                          if (location.type === LocationType.InPerson) {
-                            locationFormMethods.setValue("locationAddress", location.address);
-                          } else {
-                            locationFormMethods.unregister("locationAddress");
-                          }
-                          locationFormMethods.unregister("locationPhoneNumber");
-                          setEditingLocationType(location.type);
-                          openLocationModal(location.type, location.address);
-                        }}
-                        aria-label={t("edit")}
-                        className="hover:text-emphasis text-subtle mr-1 p-1">
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
             {validLocations.some(
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
@@ -366,19 +285,38 @@ export const EventSetupTab = (
                 </a>
               </p>
             )}
-            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
-              <li>
-                <Button
-                  data-testid="add-location"
-                  StartIcon={Plus}
-                  color="minimal"
-                  onClick={() => setShowLocationModal(true)}>
-                  {t("add_location")}
-                </Button>
-              </li>
-            )}
           </ul>
         )}
+        <AddLocation
+          locationOptions={locationOptions}
+          locationFormMethods={formMethods}
+          defaultValues={formMethods.getValues("locations")}
+          saveLocation={saveLocation}
+          selection={
+            selectedLocation
+              ? {
+                  value: selectedLocation.value,
+                  label: t(selectedLocation.label),
+                  icon: selectedLocation.icon,
+                }
+              : undefined
+          }
+          setSelectedLocation={setSelectedLocation}
+          setEditingLocationType={setEditingLocationType}
+          openLocationModal={openLocationModal}
+          removeLocation={removeLocation}
+          isManagedEventType={isManagedEventType}
+          isChildrenManagedEventType={isChildrenManagedEventType}
+        />
+        <span className="text-subtle text-sm leading-tight">
+          <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
+            Can&apos;t find the right video app? Visit our
+            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+              App Store
+            </Link>
+            .
+          </Trans>
+        </span>
       </div>
     );
   };
@@ -544,7 +482,7 @@ export const EventSetupTab = (
         </div>
 
         {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
-        <EditLocationDialog
+        {/* <EditLocationDialog
           isOpenDialog={showLocationModal}
           setShowLocationModal={setShowLocationModal}
           saveLocation={saveLocation}
@@ -568,7 +506,7 @@ export const EventSetupTab = (
           setSelectedLocation={setSelectedLocation}
           setEditingLocationType={setEditingLocationType}
           teamId={eventType.team?.id}
-        />
+        /> */}
       </div>
     </div>
   );
